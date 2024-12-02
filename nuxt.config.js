@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss'
+  ],
   app: {
     head: {
       link: [
@@ -9,5 +10,7 @@ export default defineNuxtConfig({
         }
       ]
     }
-  }
+  },
+
+  compatibilityDate: '2024-11-28'
 })

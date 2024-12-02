@@ -68,7 +68,8 @@ const isExpanded = ref(true)
 const navItems = [
   { name: 'Dashboard', path: '/', icon: 'dashboard' },
   { name: 'Captura de Movimientos', path: '/movements/capture', icon: 'sync_alt' },
-  { name: 'Solicitudes de devolución', path: '/treasury/requests', icon: 'account_balance' }
+  { name: 'Solicitudes de devolución T', path: '/treasury/requests', icon: 'account_balance' },
+  { name: 'Validacion de devolución C', path: '/treasury/validation', icon: 'account_balance' }
 ]
 
 const toggleSidebar = () => {
