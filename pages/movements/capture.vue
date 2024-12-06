@@ -198,11 +198,11 @@ const handleSubmit = async () => {
 
 		form.value.file = {
 			// movementId: route.params.id,
-			FileName: uploadedFile.filename,
-			FileUrl: uploadedFile.url,
+			FileName: uploadedFile.data.filename,
+			FileUrl: uploadedFile.data.url,
 			Status: 0,
 			Stage: 2,
-			CreatedBy: '201065',
+			CreatedBy: process.client ? localStorage.username : '999',
 		};
 
 		// Step 2: Save Form

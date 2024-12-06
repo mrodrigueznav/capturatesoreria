@@ -21,6 +21,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'auth',
+});
 const stats = [
   {
     title: 'Total Users',

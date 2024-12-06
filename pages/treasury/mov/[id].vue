@@ -224,15 +224,15 @@ const uploadFile = async (event) => {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						movementId: route.params.id,
-						FileName: uploadedFile.filename,
-						FileUrl: uploadedFile.url,
+						FileName: uploadedFile.data.filename,
+						FileUrl: uploadedFile.data.url,
 						Status: 0,
 						Stage: 2,
-						CreatedBy: '201065',
-						CuentaRetiro: uploadedFile.cuentaRetiro,
-						ImporteOperacion: uploadedFile.importeOperacion,
-						CuentaDeposito: uploadedFile.cuentaDeposito,
-						FechaAplicacion: uploadedFile.fechaAplicacion
+						CreatedBy: process.client ? localStorage.username : '999',
+						CuentaRetiro: uploadedFile.data.cuentaRetiro,
+						ImporteOperacion: uploadedFile.data.importeOperacion,
+						CuentaDeposito: uploadedFile.data.cuentaDeposito,
+						FechaAplicacion: uploadedFile.data.fechaAplicacion
 					}),
 				}
 			);
