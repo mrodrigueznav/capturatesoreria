@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { debounce } from 'lodash';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '../../composables/useAPI';
 import { saveUserDetails } from '@/utils/storage';
 
 definePageMeta({
