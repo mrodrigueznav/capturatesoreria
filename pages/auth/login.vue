@@ -9,6 +9,8 @@
 					label="Username"
 					type="text"
 					required
+					ref="usernameInput"
+					:class="{ 'input-error': errorMessage && !formData.username }"
 				/>
 
 				<FormInput
@@ -16,9 +18,14 @@
 					label="Password"
 					type="password"
 					required
+					:class="{ 'input-error': errorMessage && !formData.password }"
 				/>
 
-				<FormButton type="submit" :loading="loading" :disabled="loading">
+				<FormButton
+					type="submit"
+					:loading="loading"
+					:disabled="loading || !formData.username || !formData.password"
+				>
 					Login
 				</FormButton>
 
@@ -31,64 +38,59 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { debounce } from 'lodash';
+import { useApi } from '@/composables/useApi';
+import { saveUserDetails } from '@/utils/storage';
+
 definePageMeta({
-    layout: 'login'
+	layout: 'login',
 });
 
-const { $locally } = useNuxtApp()
+const config = useRuntimeConfig();
+const baseAPIURL = config.public.API_BASE;
+const { fetchData, loading, errorMessage } = useApi(baseAPIURL);
+const router = useRouter();
 
 const formData = ref({
-  username: '',
-  password: '',
+	username: '',
+	password: '',
 });
 
-const loading = ref(false);
-const errorMessage = ref('');
+const usernameInput = ref();
 
-async function handleSubmit() {
-  loading.value = true;
-  errorMessage.value = '';
+onMounted(() => {
+	usernameInput.value.focus(); // Focus on the username input field on load
+});
 
-  try {
-    const response = await fetch('http://localhost:3001/api/v1/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData.value),
-    });
+const handleSubmit = debounce(async () => {
+	try {
+		const data = await fetchData('/auth/login', {
+			method: 'POST',
+			body: JSON.stringify(formData.value),
+		});
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Login failed');
-    }
+		// Save user details to local storage
+		saveUserDetails(data);
 
-    const data = await response.json();
-
-    // Assuming the response includes a token
-    const token = data.token;
-    const username = data.user.username;
-    const nombre = data.user.nombre;
-    const empresa = data.user.empresa;
-    const rol = data.user.permisos;
-
-    // Save the token in localStorage or cookie
-    localStorage.setItem('token', token);
-    localStorage.setItem('username', username);
-    localStorage.setItem('nombre', nombre);
-    localStorage.setItem('empresa', empresa);
-    localStorage.setItem('pAppV', rol);
-    // $locally.set('token', token);
-
-    // Redirect or perform additional actions
-    // For example: navigate to a dashboard
-    window.location.href = '/';
-
-  } catch (error) {
-    errorMessage.value = error.message;
-  } finally {
-    loading.value = false;
-  }
-}
+		// Navigate to the dashboard
+		router.push('/');
+	} catch (error) {
+		// Provide more user-friendly error messages
+		if (error.message.includes('NetworkError')) {
+			errorMessage.value = 'Network error, please try again.';
+		} else if (error.message.includes('Login failed')) {
+			errorMessage.value = 'Invalid username or password.';
+		} else {
+			errorMessage.value = 'An unexpected error occurred.';
+		}
+	}
+}, 300); // 300ms debounce to prevent rapid form submissions
 </script>
+
+<style scoped>
+.input-error {
+	border-color: red;
+}
+</style>

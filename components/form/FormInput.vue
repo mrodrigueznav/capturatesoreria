@@ -11,31 +11,42 @@
       @input="$emit('update:modelValue', $event.target.value)"
       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-100"
       :required="required"
+      ref="inputElement"
     >
   </div>
 </template>
 
 <script setup>
+import { ref, computed, defineExpose } from 'vue';
+
 const props = defineProps({
   label: {
     type: String,
-    required: true
+    required: true,
   },
   modelValue: {
     type: [String, Number],
-    default: ''
+    default: '',
   },
   type: {
     type: String,
-    default: 'text'
+    default: 'text',
   },
   required: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const id = computed(() => `input-${props.label.toLowerCase().replace(/\s+/g, '-')}`)
+const id = computed(() => `input-${props.label.toLowerCase().replace(/\s+/g, '-')}`);
 
-defineEmits(['update:modelValue'])
+// Reference for the input element
+const inputElement = ref(null);
+
+// Expose the `focus` method
+defineExpose({
+  focus: () => inputElement.value?.focus(),
+});
+
+defineEmits(['update:modelValue']);
 </script>
