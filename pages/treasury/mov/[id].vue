@@ -23,6 +23,8 @@
 					Información del Movimiento
 				</h2>
 				<div class="space-y-4">
+					<!-- Datos de Solicitud -->
+					<h3 class="text-lg font-semibold text-white mb-2">Datos de Solicitud</h3>
 					<div class="flex justify-between">
 						<span class="text-gray-400">Folio Interno:</span>
 						<span class="text-white font-medium">{{
@@ -40,7 +42,7 @@
 					<div class="flex justify-between">
 						<span class="text-gray-400">Empresa:</span>
 						<span class="text-white font-medium">{{
-							formatRazonSocial(movement.RazonSocial)
+							formatRazonSocial(movement.Empresa)
 						}}</span>
 					</div>
 					<div class="flex justify-between">
@@ -50,31 +52,99 @@
 						}}</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-gray-400">Cuenta de Origen:</span>
+						<span class="text-gray-400">Pasivo de Autorización:</span>
 						<span class="text-white font-medium">{{
-							movement.CuentaFrom
+							movement.PasivoAutorizacion
 						}}</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-gray-400">Banco:</span>
+						<span class="text-gray-400">Concepto:</span>
 						<span class="text-white font-medium">{{
-							formatBanco(movement.Banco)
+							formatConcepto(movement.Concepto)
+						}}</span>
+					</div>
+
+					<!-- Datos Deposito Cliente -->
+					<h3 class="text-lg font-semibold text-white mt-6 mb-2">Datos Deposito Cliente</h3>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Razón Social Depósito:</span>
+						<span class="text-white font-medium">{{
+							movement.RazonSocialDeposito
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Importe Depósito:</span>
+						<span class="text-white font-medium">{{
+							formatCurrency(movement.ImporteDeposito)
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Cuenta SAP Cliente:</span>
+						<span class="text-white font-medium">{{
+							movement.CuentaSapCliente
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Banco Depósito:</span>
+						<span class="text-white font-medium">{{
+							formatBanco(movement.BancoDeposito)
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Cuenta Depósito:</span>
+						<span class="text-white font-medium">{{
+							movement.CuentaDeposito
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Referencia Depósito:</span>
+						<span class="text-white font-medium">{{
+							movement.ReferenciaDeposito
+						}}</span>
+					</div>
+
+					<!-- Datos para Devolución -->
+					<h3 class="text-lg font-semibold text-white mt-6 mb-2">Datos para Devolución</h3>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Tipo Devolución:</span>
+						<span class="text-white font-medium">{{
+							formatTipoDevolucion(movement.TipoDevolucion)
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Importe Devolución:</span>
+						<span class="text-white font-medium">{{
+							formatCurrency(movement.ImporteDevolucion)
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Banco Origen:</span>
+						<span class="text-white font-medium">{{
+							formatBanco(movement.BancoOrigen)
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Cuenta Origen:</span>
+						<span class="text-white font-medium">{{
+							movement.CuentaOrigen
+						}}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Banco Destino:</span>
+						<span class="text-white font-medium">{{
+							formatBanco(movement.BancoDestino)
 						}}</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-gray-400">Cuenta Destino:</span>
-						<span class="text-white font-medium">{{ movement.CuentaTo }}</span>
-					</div>
-					<div class="flex justify-between">
-						<span class="text-gray-400">Importe:</span>
 						<span class="text-white font-medium">{{
-							formatCurrency(movement.Importe)
+							movement.CuentaDestino
 						}}</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-gray-400">Fecha de Solicitud:</span>
+						<span class="text-gray-400">Razón Social Devolución:</span>
 						<span class="text-white font-medium">{{
-							formatDate(movement.createdAt)
+							movement.RazonSocialDevolucion
 						}}</span>
 					</div>
 					<div class="flex justify-between">
@@ -83,11 +153,17 @@
 							movement.Observaciones || 'Sin observaciones'
 						}}</span>
 					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Fecha de Solicitud:</span>
+						<span class="text-white font-medium">{{
+							formatDate(movement.createdAt)
+						}}</span>
+					</div>
 				</div>
 			</div>
 
 			<!-- Files Section -->
-			<div class="bg-gray-800 rounded-lg shadow p-6">
+			<!-- <div class="bg-gray-800 rounded-lg shadow p-6">
 				<h2 class="text-xl font-semibold text-white mb-4">
 					Archivos Relacionados
 				</h2>
@@ -108,7 +184,7 @@
 						>
 					</div>
 				</div>
-			</div>
+			</div> -->
 		</div>
 
 		<!-- Additional Upload Button -->
@@ -116,7 +192,7 @@
 			<label
 				class="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700 transition-colors"
 			>
-				Anexar Archivo
+				Anexar SPEI Tesoreria
 				<input type="file" class="hidden" @change="uploadFile" />
 			</label>
 		</div>
@@ -141,9 +217,9 @@ const movement = ref(response.value?.data || {});
 
 const formatSucursal = (sucursal) => {
 	const sucursales = {
-		cdmx: 'Ciudad de México',
-		gdl: 'Guadalajara',
-		mty: 'Monterrey',
+		MEXICO: 'México',
+		GUADALAJARA: 'Guadalajara',
+		MONTERREY: 'Monterrey',
 	};
 	return sucursales[sucursal] || sucursal;
 };
@@ -160,20 +236,35 @@ const formatStage = (stage) => {
 
 const formatBanco = (banco) => {
 	const bancos = {
-		bbva: 'BBVA',
-		santander: 'Santander',
-		banamex: 'Banamex',
+		BBVA: 'BBVA',
+		SANTANDER: 'Santander',
+		BANAMEX: 'Banamex',
 	};
 	return bancos[banco] || banco;
 };
 
 const formatRazonSocial = (razonSocial) => {
 	const companies = {
-		comp1: 'Compañía 1',
-		comp2: 'Compañía 2',
-		comp3: 'Compañía 3',
+		empresa1: 'Empresa 1',
+		empresa2: 'Empresa 2',
 	};
 	return companies[razonSocial] || razonSocial;
+};
+
+const formatConcepto = (concepto) => {
+	const conceptos = {
+		pago: 'Pago',
+		reembolso: 'Reembolso',
+	};
+	return conceptos[concepto] || concepto;
+};
+
+const formatTipoDevolucion = (tipo) => {
+	const tipos = {
+		ingreso: 'Ingreso',
+		egreso: 'Egreso',
+	};
+	return tipos[tipo] || tipo;
 };
 
 const formatCurrency = (amount) => {
@@ -229,10 +320,6 @@ const uploadFile = async (event) => {
 						Status: 0,
 						Stage: 2,
 						CreatedBy: process.client ? localStorage.username : '999',
-						CuentaRetiro: uploadedFile.data.cuentaRetiro,
-						ImporteOperacion: uploadedFile.data.importeOperacion,
-						CuentaDeposito: uploadedFile.data.cuentaDeposito,
-						FechaAplicacion: uploadedFile.data.fechaAplicacion
 					}),
 				}
 			);

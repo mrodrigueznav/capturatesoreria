@@ -90,7 +90,7 @@ const isDropdownOpen = ref(false) // Ref for dropdown visibility
 // All navigation items
 const allNavItems = [
   { name: 'Dashboard', path: '/', icon: 'dashboard' },
-  { name: 'Captura de Movimientos', path: '/movements/capture', icon: 'sync_alt' },
+  { name: 'Captura de Solicitud', path: '/contraloria/capture', icon: 'sync_alt' },
   { name: 'Solicitudes de devolución T', path: '/treasury/requests', icon: 'account_balance' },
   { name: 'Validacion de devolución C', path: '/treasury/validation', icon: 'account_balance' }
 ]

@@ -22,28 +22,28 @@
                 {{ `INT-${String(movement.id).padStart(3, '0')}` }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                {{ formatRazonSocial(movement.RazonSocial) }}
+                {{ formatRazonSocial(movement.Empresa) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                 {{ formatSucursal(movement.Sucursal) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                {{ movement.CuentaFrom }}
+                {{ movement.PasivoAutorizacion }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                {{ formatBanco(movement.Banco) }}
+                {{ movement.RazonSocialDeposito }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                {{ movement.CuentaTo }}
+                {{ movement.CuentaSapCliente }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                {{ formatCurrency(movement.Importe) }}
+                {{ movement.RazonSocialDevolucion }}
               </td>
             </tr>
           </tbody>
           <tbody v-else class="bg-gray-800">
             <tr>
-              <td colspan="8" class="text-center text-sm text-gray-400 px-6 py-4">
+              <td colspan="7" class="text-center text-sm text-gray-400 px-6 py-4">
                 No hay movimientos disponibles.
               </td>
             </tr>
@@ -66,10 +66,10 @@ const headers = [
   { key: 'folioInterno', label: 'Folio Interno' },
   { key: 'empresa', label: 'Empresa' },
   { key: 'sucursal', label: 'Sucursal' },
-  { key: 'cuentaOrigen', label: 'Cuenta de Origen' },
-  { key: 'banco', label: 'Banco' },
-  { key: 'cuentaDestino', label: 'Cuenta Destino' },
-  { key: 'importe', label: 'Importe' }
+  { key: 'pasivoAutorizacion', label: 'Pasivo Autorización' },
+  { key: 'razonSocialDeposito', label: 'Razón Social Depósito' },
+  { key: 'cuentaSapCliente', label: 'Cuenta SAP Cliente' },
+  { key: 'razonSocialDevolucion', label: 'Razón Social Devolución' }
 ];
 
 const movements = ref([]);
@@ -95,29 +95,12 @@ const formatSucursal = (sucursal) => {
   return sucursales[sucursal] || sucursal;
 };
 
-const formatBanco = (banco) => {
-  const bancos = {
-    'bbva': 'BBVA',
-    'santander': 'Santander',
-    'banamex': 'Banamex'
-  };
-  return bancos[banco] || banco;
-};
-
 const formatRazonSocial = (razonSocial) => {
   const companies = {
-    'comp1': 'Compañía 1',
-    'comp2': 'Compañía 2',
-    'comp3': 'Compañía 3'
+    'empresa1': 'Empresa 1',
+    'empresa2': 'Empresa 2'
   };
   return companies[razonSocial] || razonSocial;
-};
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(amount);
 };
 
 const navigateToDetail = (id) => {
