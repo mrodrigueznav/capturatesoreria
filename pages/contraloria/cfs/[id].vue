@@ -163,12 +163,12 @@
 			</div>
 
 			<!-- Files Section -->
-			<!-- <div class="bg-gray-800 rounded-lg shadow p-6">
+			<div class="bg-gray-800 rounded-lg shadow p-6">
 				<h2 class="text-xl font-semibold text-white mb-4">
 					Archivos Relacionados
 				</h2>
 				<div
-					v-for="file in movement.Movement_files"
+					v-for="file in movement.Movement.Movement_files"
 					:key="file.id"
 					class="space-y-2"
 				>
@@ -184,7 +184,7 @@
 						>
 					</div>
 				</div>
-			</div> -->
+			</div>
 		</div>
 
 		<!-- Additional Upload Button -->
@@ -192,8 +192,8 @@
 			<label
 				class="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700 transition-colors"
 			>
-				Anexar SPEI Tesoreria
-				<input type="file" class="hidden" @change="handleFileUpload" />
+				Anexar SPEI Contraloria
+				<input type="file" class="hidden" @change="uploadFile" />
 			</label>
 		</div>
 	</div>
@@ -202,14 +202,18 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useMovements } from '../../composables/useMovements';
 
-const { fetchMovement, uploadFile, updateMovementStatus } = useMovements();
 const router = useRouter();
 const route = useRoute();
+const validationStatus = ref('pending');
 
-const { data: response, pending, error } = await fetchMovement(route.params.id);
-const movement = ref(response || {});
+const {
+	data: response,
+	pending,
+	error,
+} = await useFetch(`http://localhost:3001/api/v1/cfs/${route.params.id}`);
+
+const movement = ref(response.value.data || {});
 
 const formatSucursal = (sucursal) => {
 	const sucursales = {
@@ -280,42 +284,76 @@ const formatDate = (dateString) => {
 	});
 };
 
-const handleFileUpload = async (event) => {
+const uploadFile = async (event) => {
 	const file = event.target.files[0];
-	if (!file) return;
+	if (file) {
+		try {
+			// Step 1: Upload the file
+			const formData = new FormData();
+			formData.append('file', file);
 
-	try {
-		const { data: uploadedFile, error } = await uploadFile(file, route.params.id);
-		if (error) throw error;
+			const responseUpload = await fetch(
+				'http://localhost:3001/api/v1/files/upload',
+				{
+					method: 'POST',
+					body: formData,
+				}
+			);
 
-		if (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion) {
-			const createClarification = await fetch('http://localhost:3001/api/v1/clarifications', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					movementId: route.params.id,
-					FileName: uploadedFile.data.filename,
-					FileUrl: uploadedFile.data.url,
-					bankType: uploadedFile.data.bankType,
-					cuentaAbono: uploadedFile.data.cuentaAbono,
-					cuentaCargo: uploadedFile.data.cuentaCargo,
-					importeOperacion: uploadedFile.data.importeOperacion,
-					fechaAplicacion: uploadedFile.data.fechaAplicacion,
-					Status: 0,
-					Stage: 3,
-					CreatedBy: process.client ? localStorage.username : '999',
-				}),
-			});
-			throw new Error(`El importe de la operación no coincide con el importe del depósito. ${uploadedFile.data.importeOperacion} !== ${movement.value.ImporteDevolucion}`);
+			if (!responseUpload.ok) {
+				throw new Error('Error uploading the file.');
+			}
+
+			const uploadedFile = await responseUpload.json(); // Assuming the response contains FileName and FileUrl
+			console.log('File uploaded:', uploadedFile);
+
+			// Step 2: Save file information to /files
+			const createFileResponse = await fetch(
+				'http://localhost:3001/api/v1/files',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						movementId: route.params.id,
+						FileName: uploadedFile.data.filename,
+						FileUrl: uploadedFile.data.url,
+						Status: 0,
+						Stage: 2,
+						CreatedBy: process.client ? localStorage.username : '999',
+					}),
+				}
+			);
+
+			if (!createFileResponse.ok) {
+				throw new Error('Error saving file info.');
+			}
+
+			console.log('File info saved.');
+
+			// Step 3: Update the movement status
+			const updateMovementResponse = await fetch(
+				`http://localhost:3001/api/v1/cfs/status/${route.params.id}`,
+				{
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						WorkflowStatus: 2, // Update WorkflowStatus
+					}),
+				}
+			);
+
+			if (!updateMovementResponse.ok) {
+				throw new Error('Error updating movement status.');
+			}
+
+			console.log('Movement status updated.');
+
+			// Redirect to treasury/requests
+			router.push('/contraloria/clarifications');
+		} catch (error) {
+			console.error('Error during file upload process:', error);
+			alert('There was an issue processing the file upload.');
 		}
-
-		const { success, error: statusError } = await updateMovementStatus(route.params.id, 2);
-		if (statusError) throw statusError;
-
-		router.push('/treasury/transferCapture');
-	} catch (error) {
-		console.error('Error during file upload process:', error);
-		alert('There was an issue processing the file upload.');
 	}
 };
 </script>

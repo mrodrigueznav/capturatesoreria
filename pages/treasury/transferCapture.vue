@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-6 text-white">Solicitudes de devolución (Tesorería)</h1>
+  <div class="p-6 border-2 border-orange-500">
+    <h1 class="text-2xl font-bold mb-6 text-white">Captura de Transferencias</h1>
     
     <!-- Table -->
     <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -80,7 +80,7 @@ const fetchMovements = async () => {
     const data = await response.json();
 
     // Filter movements to only include those with WorkflowStatus = 1
-    movements.value = data.data.filter(movement => movement.WorkflowStatus === 1);
+    movements.value = data.data.filter(movement => movement.WorkflowStatus === 3);
   } catch (error) {
     console.error('Error fetching movements:', error);
   }

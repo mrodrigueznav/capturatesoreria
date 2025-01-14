@@ -1,6 +1,6 @@
 <template>
-    <div class="p-6">
-      <h1 class="text-2xl font-bold mb-6 text-white">Solicitudes de devolución (Tesorería)</h1>
+    <div class="p-6 border-2 border-orange-500">
+      <h1 class="text-2xl font-bold mb-6 text-white">Alta en Banca Electrónica</h1>
   
       <!-- Table -->
       <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -43,7 +43,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                   <button @click="openValidationModal(movement)"
                           class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                    Validar
+                    Alta Realizada
                   </button>
                 </td>
               </tr>
@@ -60,10 +60,10 @@
       </div>
   
       <!-- Modal -->
-      <div v-if="showModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-          <h2 class="text-lg font-bold mb-4">Confirmar Validación</h2>
-          <p>¿Estás seguro de que deseas validar este movimiento?</p>
+      <div v-if="showModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+          <h2 class="text-lg font-bold mb-4">Alta</h2>
+          <p>¿Estás seguro de que deseas validar que esta alta ya fue realizada?</p>
           <div class="flex justify-end mt-4">
             <button @click="confirmValidation" class="bg-green-500 text-white px-4 py-2 rounded mr-2">
               Confirmar
@@ -77,10 +77,12 @@
     </div>
   </template>
   
+  
 
   <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useMovements } from '../../composables/useMovements';
 
 const router = useRouter();
 const headers = [
@@ -97,14 +99,15 @@ const movements = ref([]);
 const showModal = ref(false);
 const selectedMovement = ref(null);
 
+const { fetchAllMovements, updateMovementStatus } = useMovements();
+
 const fetchMovements = async () => {
-  try {
-    const response = await fetch('http://localhost:3001/api/v1/mov');
-    const data = await response.json();
-    movements.value = data.data.filter(movement => movement.WorkflowStatus === 1);
-  } catch (error) {
+  const { data, error } = await fetchAllMovements();
+  if (error) {
     console.error('Error fetching movements:', error);
+    return;
   }
+  movements.value = data.filter(movement => movement.WorkflowStatus === 1);
 };
 
 const formatSucursal = (sucursal) => {
@@ -136,16 +139,11 @@ const closeModal = () => {
 
 const confirmValidation = async () => {
   try {
-    const response = await fetch(`http://localhost:3001/api/v1/mov/validate/${selectedMovement.value.id}`, {
-      method: 'POST',
-    });
-
-    if (response.ok) {
-      alert('Movimiento validado exitosamente.');
-      movements.value = movements.value.filter(m => m.id !== selectedMovement.value.id);
-    } else {
-      console.error('Error validando el movimiento.');
-    }
+    const { success, error } = await updateMovementStatus(selectedMovement.value.id, 2);
+    if (error) throw error;
+    
+    alert('Movimiento validado exitosamente.');
+    movements.value = movements.value.filter(m => m.id !== selectedMovement.value.id);
   } catch (error) {
     console.error('Error al validar el movimiento:', error);
   } finally {

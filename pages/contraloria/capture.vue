@@ -1,5 +1,5 @@
 <template>
-	<div class="p-6 max-w-4xl mx-auto">
+	<div class="p-6 max-w-4xl mx-auto border-2 border-green-500">
 		<h1 class="text-2xl font-bold mb-6 text-white">Solicitud de Devolución</h1>
 
 		<form @submit.prevent="handleSubmit" class="space-y-6">
@@ -17,20 +17,22 @@
 					<FormInput v-model="form.razonSocialDeposito" label="Razón Social" type="text" required />
 					<FormInput v-model="form.importeDeposito" label="Importe" type="number" step="0.01" required />
 					<FormInput v-model="form.cuentaSapCliente" label="Cuenta SAP Cliente" type="text" required />
-					<FormSelect v-model="form.bancoDeposito" label="Banco" :options="bankOptions" required />
-					<FormSelect v-model="form.cuentaDeposito" label="Cuenta" :options="accountOptions" required />
+					<FormSelect v-model="form.bancoDeposito" label="Banco" :options="allAvailableBanks" required />
+					<!-- <FormSelect v-model="form.cuentaDeposito" label="Cuenta" :options="accountOptions" required /> -->
+					<FormInput v-model="form.cuentaDeposito" label="Cuenta" type="text" required />
 					<FormInput v-model="form.referenciaDeposito" label="Referencia" type="text" required />
 				</div>
 			</FormSection>
 
 			<FormSection title="Datos para Devolución" icon="account_balance_wallet">
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<FormSelect v-model="form.tipoDevolucion" label="Tipo" :options="typeOptions" required />
+					<!-- <FormSelect v-model="form.tipoDevolucion" label="Tipo" :options="typeOptions" required /> -->
 					<FormInput v-model="form.importeDevolucion" label="Importe" type="number" step="0.01" required />
 					<FormSelect v-model="form.bancoOrigen" label="Banco Origen" :options="bankOptions" required />
 					<FormSelect v-model="form.cuentaOrigen" label="Cuenta Origen" :options="accountOptions" required />
-					<FormSelect v-model="form.bancoDestino" label="Banco Destino" :options="bankOptions" required />
-					<FormSelect v-model="form.cuentaDestino" label="Cuenta Destino" :options="accountOptions" required />
+					<FormSelect v-model="form.bancoDestino" label="Banco Destino" :options="allAvailableBanks" required />
+					<!-- <FormSelect v-model="form.cuentaDestino" label="Cuenta Destino" required /> -->
+					<FormInput v-model="form.cuentaDestino" label="Cuenta Destino" type="text" required />
 					<FormInput v-model="form.razonSocialDevolucion" label="Razón Social" type="text" required />
 					<div class="md:col-span-2">
 						<FormInput v-model="form.observaciones" label="Observaciones" type="text" class="h-24" />
@@ -73,7 +75,7 @@ const form = ref({
 	bancoDeposito: '',
 	cuentaDeposito: '',
 	referenciaDeposito: '',
-	tipoDevolucion: '',
+	tipoDevolucion: 'Transferencia',
 	importeDevolucion: '',
 	bancoOrigen: '',
 	cuentaOrigen: '',
@@ -91,20 +93,51 @@ const branchOptions = ref([]);
 const bankOptions = ref([]);
 const accountOptions = ref([]);
 
+const allAvailableBanks = ref([
+  { value: "bbva", label: "BBVA México" },
+  { value: "banorte", label: "Banorte" },
+  { value: "santander", label: "Santander México" },
+  { value: "citibanamex", label: "Citibanamex" },
+  { value: "banobras", label: "Banobras" },
+  { value: "hsbc", label: "HSBC México" },
+  { value: "scotiabankInverlat", label: "Scotiabank Inverlat" },
+  { value: "inbursa", label: "Inbursa" },
+  { value: "nacionalFinancieraNafin", label: "Nacional Financiera (Nafin)" },
+  { value: "bancomext", label: "Bancomext" },
+  { value: "banbajio", label: "BanBajío" },
+  { value: "bancoAzteca", label: "Banco Azteca" },
+  { value: "afirme", label: "Afirme" },
+  { value: "monex", label: "Monex" },
+  { value: "banregio", label: "Banregio" },
+  { value: "bancaMifel", label: "Banca Mifel" },
+  { value: "ciBanco", label: "CI Banco" },
+  { value: "intercamBanco", label: "Intercam Banco" },
+  { value: "abcCapital", label: "ABC Capital" },
+  { value: "bancoBase", label: "Banco BASE" }
+]);
+
 // Mock Data for Dropdowns Without Options
 const companyOptions = ref([
-	{ value: 'empresa1', label: 'Empresa 1' },
-	{ value: 'empresa2', label: 'Empresa 2' },
+	{ value: 'cosein', label: 'COSEIN' },
+	{ value: 'cometra', label: 'COMETRA' },
+	{ value: 'sesein', label: 'SESEIN' },
+	{ value: 'sesepro', label: 'SESEPRO' },
+	{ value: 'seguritec', label: 'SEGURITEC' },
+	{ value: 'tecnopro', label: 'TECNOPRO' },
+	{ value: 'grumer', label: 'GRUMER' },
+	{ value: 'regio', label: 'REGIO' },
+	{ value: 'tameme', label: 'TAMEME' },
+	{ value: 'tyr', label: 'TYR' },
 ]);
 
 const conceptOptions = ref([
-	{ value: 'pago', label: 'Pago' },
-	{ value: 'reembolso', label: 'Reembolso' },
+	{ value: 'pago', label: 'Concepto1' },
+	{ value: 'reembolso', label: 'Concepto2' },
 ]);
 
 const typeOptions = ref([
-	{ value: 'ingreso', label: 'Ingreso' },
-	{ value: 'egreso', label: 'Egreso' },
+	{ value: 'ingreso', label: 'Tipo1' },
+	{ value: 'egreso', label: 'Tipo2' },
 ]);
 
 // File Upload State
@@ -121,9 +154,9 @@ const isSubmitDisabled = computed(() => {
 });
 
 // Fetch Options from Backend
-const fetchDropdownOptions = async () => {
+const fetchDropdownOptions = async (empresa) => {
 	try {
-		const data = await fetchData('cc/empresa/cosein');
+		const data = await fetchData(`cc/empresa/${empresa}`);
 
 		// Populate dropdown options
 		branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
@@ -138,8 +171,8 @@ const fetchDropdownOptions = async () => {
 		}));
 
 		allAccounts.value = data.map((item) => ({
-			value: item.Cuenta,
-			label: `${item.Cuenta} (${item.Sucursal}, ${item.Banco})`,
+			value: item.Clabe,
+			label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
 			Banco: item.Banco,
 			Sucursal: item.Sucursal,
 		}));
@@ -147,6 +180,16 @@ const fetchDropdownOptions = async () => {
 		console.error('Error fetching data:', errorMessage.value);
 	}
 };
+
+// Watch for Empresa Changes and Fetch Dropdown Options
+watch(
+	() => form.value.empresa,
+	(newEmpresa) => {
+		if (newEmpresa) {
+			fetchDropdownOptions(newEmpresa);
+		}
+	}
+);
 
 // Watch for Sucursal Changes and Filter Banco
 watch(
@@ -165,7 +208,7 @@ watch(
 
 // Watch for Banco Changes and Filter DeLaCuenta
 watch(
-	() => form.value.bancoDeposito,
+	() => form.value.bancoOrigen,
 	(newBanco) => {
 		if (newBanco) {
 			accountOptions.value = allAccounts.value.filter(
@@ -217,11 +260,16 @@ const handleSubmit = async () => {
 		}
 
 		const uploadedFile = await uploadResponse.json(); // Assuming the response contains FileName and FileUrl
-
+		console.log(uploadedFile)
 		form.value.file = {
 			// movementId: route.params.id,
 			FileName: uploadedFile.data.filename,
 			FileUrl: uploadedFile.data.url,
+			bankType: uploadedFile.data.bankType,
+			cuentaCargo: uploadedFile.data.cuentaCargo,
+			cuentaAbono: uploadedFile.data.cuentaAbono,
+			importeOperacion: uploadedFile.data.importeOperacion,
+			fechaAplicacion: uploadedFile.data.fechaAplicacion,
 			Status: 0,
 			Stage: 2,
 			CreatedBy: process.client ? localStorage.username : '999',
@@ -257,7 +305,7 @@ const resetForm = () => {
 		bancoDeposito: '',
 		cuentaDeposito: '',
 		referenciaDeposito: '',
-		tipoDevolucion: '',
+		tipoDevolucion: 'Transferencia',
 		importeDevolucion: '',
 		bancoOrigen: '',
 		cuentaOrigen: '',
@@ -282,6 +330,10 @@ const handleSoporteDeposito = () => {
 };
 
 // Fetch Data on Page Load
-onMounted(fetchDropdownOptions);
+onMounted(() => {
+	if (form.value.empresa) {
+		fetchDropdownOptions(form.value.empresa);
+	}
+});
 </script>
 

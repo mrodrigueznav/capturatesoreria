@@ -90,9 +90,14 @@ const isDropdownOpen = ref(false) // Ref for dropdown visibility
 // All navigation items
 const allNavItems = [
   { name: 'Dashboard', path: '/', icon: 'dashboard' },
-  { name: 'Captura de Solicitud', path: '/contraloria/capture', icon: 'sync_alt' },
-  { name: 'Solicitudes de devolución T', path: '/treasury/requests', icon: 'account_balance' },
-  { name: 'Validacion de devolución C', path: '/treasury/validation', icon: 'account_balance' }
+  { name: 'Captura de Solicitud', path: '/contraloria/capture', icon: 'edit' },
+  { name: 'Alta en Banca Electrónica', path: '/treasury/accountCreationValidation', icon: 'account_circle' },
+  { name: 'Confirmación de Alta en Banca Electrónica', path: '/contraloria/accountCreationConfirmation', icon: 'check_circle' },
+  { name: 'Captura de Transferencia', path: '/treasury/transferCapture', icon: 'swap_horiz' },
+  { name: 'Validacion de Transferencia', path: '/contraloria/transferCapture', icon: 'verified' },
+  { name: 'Baja en Banca Electrónica', path: '/treasury/accountDeletionValidation', icon: 'remove_circle' },
+  { name: 'Confirmación de Baja en Banca Electrónica', path: '/contraloria/accountDeletionValidation', icon: 'check_circle_outline' },
+  { name: 'Documentos por Revisar', path: '/contraloria/clarifications', icon: 'check_circle_outline' },
 ]
 
 // Filter navItems based on pAppV value
@@ -103,9 +108,13 @@ const navItems = computed(() => {
 
   return allNavItems.filter(item => {
     if (item.name === 'Dashboard') return true // Always include Dashboard
-    if (pAppV.value === '1' && item.name === 'Captura de Movimientos') return true
-    if (pAppV.value === '2' && item.name === 'Solicitudes de devolución T') return true
-    if (pAppV.value === '3' && item.name === 'Validacion de devolución C') return true
+    if (pAppV.value === '1' && item.name === 'Captura de Solicitud') return true
+    if (pAppV.value === '1' && item.name === 'Alta en Banca Electrónica') return true
+    if (pAppV.value === '1' && item.name === 'Confirmación de Alta en Banca Electrónica') return true
+    if (pAppV.value === '1' && item.name === 'Captura de Transferencia') return true
+    if (pAppV.value === '1' && item.name === 'Validacion de Transferencia') return true
+    if (pAppV.value === '1' && item.name === 'Baja en Banca Electrónica') return true
+    if (pAppV.value === '1' && item.name === 'Confirmación de Baja en Banca Electrónica') return true
     return false
   })
 })
@@ -125,7 +134,7 @@ const logout = () => {
   pAppV.value = '0'
   isDropdownOpen.value = false
   // Redirect to login page or take any other action
-  window.location.href = 'auth/login'
+  window.location.href = '/auth/login'
 }
 
 // Retrieve the 'nombre' and 'pAppV' variables from localStorage on component mount
