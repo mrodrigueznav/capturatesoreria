@@ -16,7 +16,7 @@
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<FormInput v-model="form.razonSocialDeposito" label="Razón Social" type="text" required />
 					<FormInput v-model="form.importeDeposito" label="Importe" type="number" step="0.01" required />
-					<FormInput v-model="form.cuentaSapCliente" label="Cuenta SAP Cliente" type="text" required />
+					<FormInput v-model="form.cuentaSapCliente" label="Cuenta SAP Cliente" type="text" />
 					<FormSelect v-model="form.bancoDeposito" label="Banco" :options="allAvailableBanks" required />
 					<!-- <FormSelect v-model="form.cuentaDeposito" label="Cuenta" :options="accountOptions" required /> -->
 					<FormInput v-model="form.cuentaDeposito" label="Cuenta" type="text" required />
@@ -42,9 +42,6 @@
 
 				<!-- Form Actions -->
 			<div class="flex justify-between space-x-4">
-				<button type="button" @click="handleSolicitudExp" class="px-4 py-2 text-white bg-yellow-600 rounded-md hover:bg-yellow-700 transition-colors">
-					Solicitud EXP
-				</button>
 				<button type="button" @click="handleSoporteDeposito" class="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
 					Soporte Deposito
 				</button>
@@ -226,7 +223,7 @@ watch(
 const selectFile = () => {
 	const fileInput = document.createElement('input');
 	fileInput.type = 'file';
-	fileInput.accept = '.pdf,.doc,.docx,.jpg,.png';
+	fileInput.accept = '.pdf';
 	fileInput.onchange = (event) => {
 		selectedFile.value = event.target.files[0] || null;
 	};

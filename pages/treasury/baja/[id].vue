@@ -192,7 +192,7 @@
 			<label
 				class="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700 transition-colors"
 			>
-				Anexar SPEI Tesoreria
+				Anexar Comprobante de Baja de Cuenta
 				<input type="file" class="hidden" @change="handleFileUpload" />
 			</label>
 		</div>
@@ -287,7 +287,6 @@ const handleFileUpload = async (event) => {
 	try {
 		const { data: uploadedFile, error } = await uploadFile(file, route.params.id);
 		if (error) throw error;
-		console.log('Hola')
 		console.log(uploadedFile)
 		if (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion) {
 			const createClarification = await fetch('http://localhost:3001/api/v1/cfs', {

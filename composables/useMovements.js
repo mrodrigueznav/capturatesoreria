@@ -55,25 +55,34 @@ export const useMovements = () => {
       
       if (!uploadResponse.ok) throw new Error('Error uploading file')
       const uploadedFile = await uploadResponse.json()
+      console.log(uploadedFile)
+      // Validate bank type and poder
+      if (uploadedFile.data.bankType !== 'BBVABAJA') {
+        throw new Error('El tipo de banco debe ser BBVABAJA');
+      }
+
+      if (uploadedFile.data.poder !== '100%') {
+        throw new Error('El poder debe ser 50%');
+      }
 
       // Save file info
-      const fileResponse = await fetch(endpoints.files, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          movementId,
-          FileName: uploadedFile.data.filename,
-          FileUrl: uploadedFile.data.url,
-          bankType: uploadedFile.data.bankType,
-          cuentaAbono: uploadedFile.data.cuentaAbono,
-          cuentaCargo: uploadedFile.data.cuentaCargo,
-          importeOperacion: uploadedFile.data.importeOperacion,
-          fechaAplicacion: uploadedFile.data.fechaAplicacion,
-          Status: 0,
-          Stage: 3,
-          CreatedBy: process.client ? localStorage.username : '999'
-        })
-      })
+      // const fileResponse = await fetch(endpoints.files, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     movementId,
+      //     FileName: uploadedFile.data.filename,
+      //     FileUrl: uploadedFile.data.url,
+      //     bankType: uploadedFile.data.bankType,
+      //     cuentaAbono: uploadedFile.data.cuentaAbono,
+      //     cuentaCargo: uploadedFile.data.cuentaCargo,
+      //     importeOperacion: uploadedFile.data.importeOperacion,
+      //     fechaAplicacion: uploadedFile.data.fechaAplicacion,
+      //     Status: 0,
+      //     Stage: 3,
+      //     CreatedBy: process.client ? localStorage.username : '999'
+      //   })
+      // })
 
       if (!fileResponse.ok) throw new Error('Error saving file info')
       
