@@ -1,7 +1,9 @@
 // composables/useApi.js
 import { ref } from 'vue';
 
-export function useApi(baseAPIURL) {
+const BASE_API_URL = 'http://localhost:3001/api/v1';
+
+export function useApi() {
 	const loading = ref(false);
 	const errorMessage = ref('');
 
@@ -10,7 +12,7 @@ export function useApi(baseAPIURL) {
 		errorMessage.value = '';
 
 		try {
-			const response = await fetch(`${baseAPIURL}${endpoint}`, {
+			const response = await fetch(`${BASE_API_URL}/${endpoint}`, {
 				headers: {
 					'Content-Type': 'application/json',
 					...options.headers,
@@ -23,18 +25,46 @@ export function useApi(baseAPIURL) {
 				throw new Error(errorData.message || 'Request failed');
 			}
 
-			return await response.json();
+			const data = await response.json();
+			return data;
 		} catch (error) {
 			errorMessage.value = error.message;
-			throw error; // Re-throw for handling in calling functions
+			throw error;
 		} finally {
 			loading.value = false;
 		}
 	}
 
+	// Common API methods
+	const getMovements = (status) => {
+		return fetchData('mov').then(response => {
+			if (status !== undefined) {
+				return {
+					...response,
+					data: response.data.filter(movement => movement.WorkflowStatus === status)
+				};
+			}
+			return response;
+		});
+	};
+
+	const updateMovementStatus = (id, status) => {
+		return fetchData(`mov/status/${id}`, {
+			method: 'PATCH',
+			body: JSON.stringify({ WorkflowStatus: status })
+		});
+	};
+
+	const getClarifications = () => {
+		return fetchData('cfs');
+	};
+
 	return {
 		loading,
 		errorMessage,
 		fetchData,
+		getMovements,
+		updateMovementStatus,
+		getClarifications
 	};
 }

@@ -82,8 +82,10 @@
   <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '@/composables/useApi';
 
 const router = useRouter();
+const { getMovements, updateMovementStatus, loading, errorMessage } = useApi();
 const headers = [
   { key: 'folioInterno', label: 'Folio Interno' },
   { key: 'empresa', label: 'Empresa' },
@@ -100,9 +102,8 @@ const selectedMovement = ref(null);
 
 const fetchMovements = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/v1/mov');
-    const data = await response.json();
-    movements.value = data.data.filter(movement => movement.WorkflowStatus === 2);
+    const response = await getMovements(2); // Filter for WorkflowStatus = 2
+    movements.value = response.data;
   } catch (error) {
     console.error('Error fetching movements:', error);
   }
@@ -137,24 +138,12 @@ const closeModal = () => {
 
 const confirmValidation = async () => {
   try {
-    const response = await fetch(`http://localhost:3001/api/v1/mov/status/${selectedMovement.value.id}`, {
-      method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            WorkflowStatus: 3
-        })
-    });
-
-    if (response.ok) {
-      alert('Movimiento validado exitosamente.');
-      movements.value = movements.value.filter(m => m.id !== selectedMovement.value.id);
-    } else {
-      console.error('Error validando el movimiento.');
-    }
+    await updateMovementStatus(selectedMovement.value.id, 3);
+    alert('Movimiento validado exitosamente.');
+    movements.value = movements.value.filter(m => m.id !== selectedMovement.value.id);
   } catch (error) {
     console.error('Error al validar el movimiento:', error);
+    alert('Error al validar el movimiento');
   } finally {
     closeModal();
   }

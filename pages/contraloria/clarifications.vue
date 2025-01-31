@@ -60,8 +60,10 @@ definePageMeta({
 });
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useApi } from '@/composables/useApi';
 
 const router = useRouter();
+const { getClarifications, loading, errorMessage } = useApi();
 const headers = [
   { key: 'folioInterno', label: 'Folio Aclaración' },
   { key: 'empresa', label: 'Empresa' },
@@ -76,12 +78,9 @@ const movements = ref([]);
 
 const fetchMovements = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/v1/cfs');
-    const data = await response.json();
-    movements.value = data.data
-    // Filter movements to only include those with WorkflowStatus = 1
-    // movements.value = data.filter(movement => movement.WorkflowStatus === 3);
-    console.log(movements.value)
+    const response = await getClarifications();
+    movements.value = response.data;
+    console.log(movements.value);
   } catch (error) {
     console.error('Error fetching movements:', error);
   }

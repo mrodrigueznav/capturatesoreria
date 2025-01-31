@@ -66,7 +66,7 @@ onMounted(() => {
 
 const handleSubmit = debounce(async () => {
 	try {
-		const data = await fetchData('/auth/login', {
+		const data = await fetchData('auth/login', {
 			method: 'POST',
 			body: JSON.stringify(formData.value),
 		});
