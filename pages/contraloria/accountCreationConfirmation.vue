@@ -82,7 +82,7 @@
   <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useApi } from '~/composables/useApi';
+import { useApi } from '~/composables/useApi.js';
 
 const router = useRouter();
 const { getMovements, updateMovementStatus, loading, errorMessage } = useApi();
