@@ -43,7 +43,7 @@
 				<!-- Form Actions -->
 			<div class="flex justify-between space-x-4">
 				<button type="button" @click="handleSoporteDeposito" class="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
-					Soporte Deposito
+					Soporte de Devolución
 				</button>
 				<button type="submit" :disabled="isSubmitDisabled" class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
 					Guardar

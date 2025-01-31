@@ -1,14 +1,14 @@
 <template>
 	<div class="p-6">
 		<div class="flex items-center mb-6">
-			<button
-				@click="router.back()"
-				class="text-gray-300 hover:text-white mr-4"
-			>
+			<button @click="router.back()" class="text-gray-300 hover:text-white mr-4">
 				<span class="material-icons">arrow_back</span>
 			</button>
 			<h1 class="text-2xl font-bold text-white">Detalle de Solicitud</h1>
 		</div>
+
+		<!-- Error message for file upload -->
+		<div v-if="fileUploadError" class="text-red-500 mb-4">{{ fileUploadError }}</div>
 
 		<div v-if="pending">
 			<p class="text-white">Cargando...</p>
@@ -17,11 +17,8 @@
 			<p class="text-red-500">Error al cargar el movimiento</p>
 		</div>
 		<div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<!-- Movement Details -->
 			<div class="bg-gray-800 rounded-lg shadow p-6">
-				<h2 class="text-xl font-semibold text-white mb-4">
-					Información del Movimiento
-				</h2>
+				<h2 class="text-xl font-semibold text-white mb-4">Información del Movimiento</h2>
 				<div class="space-y-4">
 					<!-- Datos de Solicitud -->
 					<h3 class="text-lg font-semibold text-white mb-2">Datos de Solicitud</h3>
@@ -189,9 +186,7 @@
 
 		<!-- Additional Upload Button -->
 		<div class="mt-6">
-			<label
-				class="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700 transition-colors"
-			>
+			<label class="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-700 transition-colors">
 				Anexar SPEI Tesoreria
 				<input type="file" class="hidden" @change="handleFileUpload" />
 			</label>
@@ -210,6 +205,7 @@ const route = useRoute();
 
 const { data: response, pending, error } = await fetchMovement(route.params.id);
 const movement = ref(response || {});
+const fileUploadError = ref("");
 
 const formatSucursal = (sucursal) => {
 	const sucursales = {
@@ -284,11 +280,13 @@ const handleFileUpload = async (event) => {
 	const file = event.target.files[0];
 	if (!file) return;
 
+	fileUploadError.value = ""; // Reset error message before processing
+
 	try {
 		const { data: uploadedFile, error } = await uploadFile(file, route.params.id);
-		if (error) throw error;
-		console.log('Hola')
-		console.log(uploadedFile)
+		if (uploadedFile.docType !== 'TRANSFERENCIA') {
+			throw new Error('El tipo de documento debe ser un comprobante de transferencia');
+		}
 		if (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion) {
 			const createClarification = await fetch('http://localhost:3001/api/v1/cfs', {
 				method: 'POST',
@@ -315,8 +313,9 @@ const handleFileUpload = async (event) => {
 
 		router.push('/treasury/transferCapture');
 	} catch (error) {
+		fileUploadError.value = error.message;
 		console.error('Error during file upload process:', error);
-		alert('There was an issue processing the file upload.');
+		// alert('There was an issue processing the file upload.');
 	}
 };
 </script>

@@ -288,7 +288,7 @@ const handleFileUpload = async (event) => {
 		const { data: uploadedFile, error } = await uploadFile(file, route.params.id);
 		if (error) throw error;
 		console.log(uploadedFile)
-		if (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion) {
+		if ((uploadedFile.docType !== 'BAJA') && (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion)) {
 			const createClarification = await fetch('http://localhost:3001/api/v1/cfs', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

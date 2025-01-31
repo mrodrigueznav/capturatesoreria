@@ -100,23 +100,64 @@ const allNavItems = [
   { name: 'Documentos por Revisar', path: '/contraloria/clarifications', icon: 'check_circle_outline' },
 ]
 
-// Filter navItems based on pAppV value
+const roles = [
+  { name: 'Administrador', pAppV: '9' },
+  { name: 'Supervisor', pAppV: '1' },
+  { name: 'Contraloria A', pAppV: '2' },
+  { name: 'Tesoreria A', pAppV: '4' },
+  { name: 'Contraloria B', pAppV: '3' },
+  { name: 'Tesoreria B', pAppV: '2' },
+]
+
+// First, let's organize the role permissions
+const rolePermissions = {
+  '9': ['*'], // Admin can see everything
+  '1': [ // Supervisor
+    'Dashboard',
+    'Captura de Solicitud',
+    'Alta en Banca Electrónica',
+    'Confirmación de Alta en Banca Electrónica',
+    'Captura de Transferencia',
+    'Validacion de Transferencia',
+    'Baja en Banca Electrónica',
+    'Confirmación de Baja en Banca Electrónica',
+    'Documentos por Revisar'
+  ],
+  '2': [ // Contraloria A
+    'Dashboard',
+    'Captura de Solicitud',
+    'Validacion de Transferencia',
+  ],
+  '3': [ // Tesoreria B
+    'Dashboard',
+    'Alta en Banca Electrónica',
+    'Baja en Banca Electrónica',
+  ],
+  '4': [ // Contraloria B
+    'Dashboard',
+    'Confirmación de Alta en Banca Electrónica',
+    'Confirmación de Baja en Banca Electrónica',
+  ],
+  '5': [ // Tesoreria A
+    'Dashboard',
+    'Captura de Transferencia',
+  ]
+}
+
+// Update the navItems computed property
 const navItems = computed(() => {
-  if (pAppV.value === '0') {
-    return allNavItems // Render all items
+  // If user is admin (pAppV === '9'), show all items
+  if (pAppV.value === '9') {
+    return allNavItems
   }
 
-  return allNavItems.filter(item => {
-    if (item.name === 'Dashboard') return true // Always include Dashboard
-    if (pAppV.value === '1' && item.name === 'Captura de Solicitud') return true
-    if (pAppV.value === '1' && item.name === 'Alta en Banca Electrónica') return true
-    if (pAppV.value === '1' && item.name === 'Confirmación de Alta en Banca Electrónica') return true
-    if (pAppV.value === '1' && item.name === 'Captura de Transferencia') return true
-    if (pAppV.value === '1' && item.name === 'Validacion de Transferencia') return true
-    if (pAppV.value === '1' && item.name === 'Baja en Banca Electrónica') return true
-    if (pAppV.value === '1' && item.name === 'Confirmación de Baja en Banca Electrónica') return true
-    return false
-  })
+  // Get the allowed menu items for the user's role
+  const allowedItems = rolePermissions[pAppV.value] || ['Dashboard']
+  
+  // Filter navItems based on permissions
+  return allNavItems.filter(item => 
+    allowedItems.includes(item.name)
+  )
 })
 
 const toggleSidebar = () => {
