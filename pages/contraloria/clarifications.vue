@@ -69,7 +69,7 @@ definePageMeta({
 });
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useApi } from '~/composables/useApi.js';
+import { useApi } from '../../composables/useApi';
 
 const router = useRouter();
 const { getClarifications, loading, errorMessage } = useApi();
