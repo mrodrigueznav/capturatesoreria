@@ -2,17 +2,8 @@
   <div class="p-6 border-2 border-orange-500">
     <h1 class="text-2xl font-bold mb-6 text-white">Clarificaciones</h1>
     
-    <!-- Loading and Error States -->
-    <div v-if="loading" class="text-center text-gray-300 py-4">
-      Cargando...
-    </div>
-    
-    <div v-else-if="errorMessage" class="text-center text-red-500 py-4">
-      {{ errorMessage }}
-    </div>
-
     <!-- Table -->
-    <div v-else class="bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-700">
           <thead class="bg-gray-900">
@@ -69,10 +60,11 @@ definePageMeta({
 });
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useApi } from '../../composables/useApi';
+import { useMovements } from '../../composables/useMovements';
 
 const router = useRouter();
-const { getClarifications, loading, errorMessage } = useApi();
+const { fetchClarifications } = useMovements();
+
 const headers = [
   { key: 'folioInterno', label: 'Folio Aclaración' },
   { key: 'empresa', label: 'Empresa' },
@@ -86,12 +78,12 @@ const headers = [
 const movements = ref([]);
 
 const fetchMovements = async () => {
-  try {
-    const response = await getClarifications();
-    movements.value = response.data;
-  } catch (error) {
-    console.error('Error fetching movements:', error);
+  const { data, error } = await fetchClarifications();
+  if (error) {
+    console.error('Error fetching clarifications:', error);
+    return;
   }
+  movements.value = data;
 };
 
 const formatSucursal = (sucursal) => {
@@ -124,4 +116,3 @@ onMounted(() => {
   fetchMovements();
 });
 </script>
-

@@ -1,107 +1,67 @@
+// composables/useApi.js
 import { ref } from 'vue';
 
-const BASE_API_URL = 'http://localhost:3001/api/v1';
+export function useApi(baseAPIURL = 'https://gsict.azurewebsites.net/api/v1') {
+  const loading = ref(false);
+  const errorMessage = ref('');
 
-export function useApi() {
-	const loading = ref(false);
-	const errorMessage = ref('');
+  async function fetchData(endpoint, options = {}) {
+    loading.value = true;
+    errorMessage.value = '';
 
-	async function fetchData(endpoint, options = {}) {
-		loading.value = true;
-		errorMessage.value = '';
+    try {
+      const response = await fetch(`${baseAPIURL}${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      });
 
-		try {
-			// Get token from localStorage for authenticated requests
-			const token = localStorage.getItem('token');
-			
-			const response = await fetch(`${BASE_API_URL}/${endpoint}`, {
-				headers: {
-					'Content-Type': 'application/json',
-					...(token && { 'Authorization': `Bearer ${token}` }),
-					...options.headers,
-				},
-				...options,
-			});
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Request failed');
+      }
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || 'Request failed');
-			}
+      return await response.json();
+    } catch (error) {
+      errorMessage.value = error.message;
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
 
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			errorMessage.value = error.message;
-			throw error;
-		} finally {
-			loading.value = false;
-		}
-	}
+  async function uploadFile(file, endpoint = '/files/upload') {
+    loading.value = true;
+    errorMessage.value = '';
 
-	// Common API methods
-	const getMovements = (status) => {
-		return fetchData('mov').then(response => {
-			if (status !== undefined) {
-				return {
-					...response,
-					data: response.data.filter(movement => movement.WorkflowStatus === status)
-				};
-			}
-			return response;
-		});
-	};
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-	const getMovementById = (id) => {
-		return fetchData(`mov/${id}`);
-	};
+      const response = await fetch(`${baseAPIURL}${endpoint}`, {
+        method: 'POST',
+        body: formData,
+      });
 
-	const updateMovementStatus = (id, status) => {
-		return fetchData(`mov/status/${id}`, {
-			method: 'PATCH',
-			body: JSON.stringify({ WorkflowStatus: status })
-		});
-	};
+      if (!response.ok) {
+        throw new Error('Error uploading file');
+      }
 
-	const uploadFile = async (file, movementId) => {
-		const formData = new FormData();
-		formData.append('file', file);
-		
-		// First upload the file
-		const uploadedFile = await fetch(`${BASE_API_URL}/files/upload`, {
-			method: 'POST',
-			body: formData
-		}).then(res => res.json());
+      return await response.json();
+    } catch (error) {
+      errorMessage.value = error.message;
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
 
-		// Then save the file info
-		return fetchData('files', {
-			method: 'POST',
-			body: JSON.stringify({
-				movementId,
-				FileName: uploadedFile.data.filename,
-				FileUrl: uploadedFile.data.url,
-				bankType: uploadedFile.data.bankType,
-				cuentaAbono: uploadedFile.data.cuentaAbono,
-				cuentaCargo: uploadedFile.data.cuentaCargo,
-				importeOperacion: uploadedFile.data.importeOperacion,
-				fechaAplicacion: uploadedFile.data.fechaAplicacion,
-				Status: 0,
-				Stage: 3,
-				CreatedBy: process.client ? localStorage.username : '999'
-			})
-		});
-	};
-
-	const getClarifications = () => {
-		return fetchData('cfs');
-	};
-
-	return {
-		loading,
-		errorMessage,
-		getMovements,
-		getMovementById,
-		updateMovementStatus,
-		uploadFile,
-		getClarifications
-	};
+  return {
+    loading,
+    errorMessage,
+    fetchData,
+    uploadFile,
+  };
 }

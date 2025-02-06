@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 border-2 border-green-500">
+  <div class="p-6 border-2 border-orange-500">
     <h1 class="text-2xl font-bold mb-6 text-white">Captura de Transferencias</h1>
     
     <!-- Table -->
@@ -60,10 +60,11 @@ definePageMeta({
 });
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useApi } from '../../composables/useApi';
+import { useMovements } from '../../composables/useMovements';
 
 const router = useRouter();
-const { getMovements } = useApi('http://localhost:3001/api/v1/');
+const { fetchAllMovements } = useMovements();
+
 const headers = [
   { key: 'folioInterno', label: 'Folio Interno' },
   { key: 'empresa', label: 'Empresa' },
@@ -77,12 +78,12 @@ const headers = [
 const movements = ref([]);
 
 const fetchMovements = async () => {
-  try {
-    const response = await getMovements(4); // Filter for WorkflowStatus = 4
-    movements.value = response.data;
-  } catch (error) {
+  const { data, error } = await fetchAllMovements();
+  if (error) {
     console.error('Error fetching movements:', error);
+    return;
   }
+  movements.value = data.filter(movement => movement.WorkflowStatus === 3);
 };
 
 const formatSucursal = (sucursal) => {
@@ -115,4 +116,3 @@ onMounted(() => {
   fetchMovements();
 });
 </script>
-
