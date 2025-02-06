@@ -18,7 +18,6 @@
 					<FormInput v-model="form.importeDeposito" label="Importe" type="number" step="0.01" required />
 					<FormInput v-model="form.cuentaSapCliente" label="Cuenta SAP Cliente" type="text" />
 					<FormSelect v-model="form.bancoDeposito" label="Banco" :options="allAvailableBanks" required />
-					<!-- <FormSelect v-model="form.cuentaDeposito" label="Cuenta" :options="accountOptions" required /> -->
 					<FormInput v-model="form.cuentaDeposito" label="Cuenta" type="text" required />
 					<FormInput v-model="form.referenciaDeposito" label="Referencia" type="text" required />
 				</div>
@@ -26,12 +25,10 @@
 
 			<FormSection title="Datos para Devolución" icon="account_balance_wallet">
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<!-- <FormSelect v-model="form.tipoDevolucion" label="Tipo" :options="typeOptions" required /> -->
 					<FormInput v-model="form.importeDevolucion" label="Importe" type="number" step="0.01" required />
 					<FormSelect v-model="form.bancoOrigen" label="Banco Origen" :options="bankOptions" required />
 					<FormSelect v-model="form.cuentaOrigen" label="Cuenta Origen" :options="accountOptions" required />
 					<FormSelect v-model="form.bancoDestino" label="Banco Destino" :options="allAvailableBanks" required />
-					<!-- <FormSelect v-model="form.cuentaDestino" label="Cuenta Destino" required /> -->
 					<FormInput v-model="form.cuentaDestino" label="Cuenta Destino" type="text" required />
 					<FormInput v-model="form.razonSocialDevolucion" label="Razón Social" type="text" required />
 					<div class="md:col-span-2">
@@ -40,10 +37,10 @@
 				</div>
 			</FormSection>
 
-				<!-- Form Actions -->
+			<!-- Form Actions -->
 			<div class="flex justify-between space-x-4">
 				<button type="button" @click="handleSoporteDeposito" class="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
-					Soporte de Devolución
+					Soporte Deposito
 				</button>
 				<button type="submit" :disabled="isSubmitDisabled" class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
 					Guardar
@@ -55,10 +52,9 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useApi } from '../../composables/useApi';
+import { useApi } from '@/composables/useApi';
 
-// Initialize the API composable
-const { fetchData, uploadFile, createMovement, fetchDropdownOptions } = useApi('http://localhost:3001/api/v1/');
+const { fetchData, uploadFile: uploadApiFile, loading, errorMessage } = useApi();
 
 // Form State
 const form = ref({
@@ -113,7 +109,6 @@ const allAvailableBanks = ref([
   { value: "bancoBase", label: "Banco BASE" }
 ]);
 
-// Mock Data for Dropdowns Without Options
 const companyOptions = ref([
 	{ value: 'cosein', label: 'COSEIN' },
 	{ value: 'cometra', label: 'COMETRA' },
@@ -132,11 +127,6 @@ const conceptOptions = ref([
 	{ value: 'reembolso', label: 'Concepto2' },
 ]);
 
-const typeOptions = ref([
-	{ value: 'ingreso', label: 'Tipo1' },
-	{ value: 'egreso', label: 'Tipo2' },
-]);
-
 // File Upload State
 const selectedFile = ref(null);
 const fileError = ref('');
@@ -147,35 +137,43 @@ const isSubmitDisabled = computed(() => {
 	const requiredFieldsFilled = Object.keys(form.value)
 		.filter((key) => key !== 'observaciones' && key !== 'anexoUrl')
 		.every((key) => form.value[key] !== '');
-	return !requiredFieldsFilled || isSaving.value;
+	return !requiredFieldsFilled || loading.value || isSaving.value;
 });
+
+// Fetch Options from Backend
+const fetchDropdownOptions = async (empresa) => {
+	try {
+		const data = await fetchData(`/cc/empresa/${empresa}`);
+
+		// Populate dropdown options
+		branchOptions.value = [...new Set(data.data.map((item) => item.Sucursal))].map((sucursal) => ({
+			value: sucursal,
+			label: sucursal,
+		}));
+
+		allBanks.value = data.data.map((item) => ({
+			value: item.Banco,
+			label: item.Banco,
+			Sucursal: item.Sucursal,
+		}));
+
+		allAccounts.value = data.data.map((item) => ({
+			value: item.Clabe,
+			label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
+			Banco: item.Banco,
+			Sucursal: item.Sucursal,
+		}));
+	} catch (error) {
+		console.error('Error fetching data:', errorMessage.value);
+	}
+};
 
 // Watch for Empresa Changes and Fetch Dropdown Options
 watch(
 	() => form.value.empresa,
 	(newEmpresa) => {
 		if (newEmpresa) {
-			fetchDropdownOptions(newEmpresa).then(data => {
-				branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
-					value: sucursal,
-					label: sucursal,
-				}));
-
-				allBanks.value = data.map((item) => ({
-					value: item.Banco,
-					label: item.Banco,
-					Sucursal: item.Sucursal,
-				}));
-
-				allAccounts.value = data.map((item) => ({
-					value: item.Clabe,
-					label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
-					Banco: item.Banco,
-					Sucursal: item.Sucursal,
-				}));
-			}).catch(error => {
-				console.error('Error fetching data:', error);
-			});
+			fetchDropdownOptions(newEmpresa);
 		}
 	}
 );
@@ -211,17 +209,6 @@ watch(
 	}
 );
 
-// File Selection Logic
-const selectFile = () => {
-	const fileInput = document.createElement('input');
-	fileInput.type = 'file';
-	fileInput.accept = '.pdf';
-	fileInput.onchange = (event) => {
-		selectedFile.value = event.target.files[0] || null;
-	};
-	fileInput.click();
-};
-
 // Submit Logic
 const handleSubmit = async () => {
 	if (!selectedFile.value) {
@@ -233,27 +220,32 @@ const handleSubmit = async () => {
 		isSaving.value = true;
 
 		// Upload File
-		const uploadedFile = await uploadFile(selectedFile.value);
+		const uploadResponse = await uploadApiFile(selectedFile.value);
+		const uploadedFile = uploadResponse.data;
 
 		form.value.file = {
-			FileName: uploadedFile.data.filename,
-			FileUrl: uploadedFile.data.url,
-			bankType: uploadedFile.data.bankType,
-			cuentaCargo: uploadedFile.data.cuentaCargo,
-			cuentaAbono: uploadedFile.data.cuentaAbono,
-			importeOperacion: uploadedFile.data.importeOperacion,
-			fechaAplicacion: uploadedFile.data.fechaAplicacion,
+			FileName: uploadedFile.filename,
+			FileUrl: uploadedFile.url,
+			bankType: uploadedFile.bankType,
+			cuentaCargo: uploadedFile.cuentaCargo,
+			cuentaAbono: uploadedFile.cuentaAbono,
+			importeOperacion: uploadedFile.importeOperacion,
+			fechaAplicacion: uploadedFile.fechaAplicacion,
 			Status: 0,
 			Stage: 2,
 			CreatedBy: process.client ? localStorage.username : '999',
 		};
 
 		// Save Form
-		await createMovement(form.value);
+		await fetchData('mov', {
+			method: 'POST',
+			body: JSON.stringify(form.value),
+		});
+
 		alert('Movimiento guardado exitosamente');
 		resetForm();
 	} catch (error) {
-		alert('Error al guardar el movimiento: ' + error.message);
+		alert('Error al guardar el movimiento: ' + errorMessage.value);
 	} finally {
 		isSaving.value = false;
 	}
@@ -286,41 +278,21 @@ const resetForm = () => {
 	fileError.value = '';
 };
 
-// Handle Solicitud EXP
-const handleSolicitudExp = () => {
-	alert('Solicitud EXP clicked');
-};
-
 // Handle Soporte Deposito
 const handleSoporteDeposito = () => {
-	selectFile();
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = '.pdf';
+	fileInput.onchange = (event) => {
+		selectedFile.value = event.target.files[0] || null;
+	};
+	fileInput.click();
 };
 
 // Fetch Data on Page Load
 onMounted(() => {
 	if (form.value.empresa) {
-		fetchDropdownOptions(form.value.empresa).then(data => {
-			branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
-				value: sucursal,
-				label: sucursal,
-			}));
-
-			allBanks.value = data.map((item) => ({
-				value: item.Banco,
-				label: item.Banco,
-				Sucursal: item.Sucursal,
-			}));
-
-			allAccounts.value = data.map((item) => ({
-				value: item.Clabe,
-				label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
-				Banco: item.Banco,
-				Sucursal: item.Sucursal,
-			}));
-		}).catch(error => {
-			console.error('Error fetching data:', error);
-		});
+		fetchDropdownOptions(form.value.empresa);
 	}
 });
 </script>
-
