@@ -52,7 +52,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '../../composables//useApi';
 
 const { fetchData, uploadFile: uploadApiFile, loading, errorMessage } = useApi();
 
