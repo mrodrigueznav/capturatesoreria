@@ -60,10 +60,10 @@ definePageMeta({
 });
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '../../composables/useApi';
 
 const router = useRouter();
-const { getMovements, loading, errorMessage } = useApi();
+const { getMovements } = useApi('http://localhost:3001/api/v1/');
 const headers = [
   { key: 'folioInterno', label: 'Folio Interno' },
   { key: 'empresa', label: 'Empresa' },

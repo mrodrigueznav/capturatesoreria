@@ -55,10 +55,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '../../composables/useApi';
 
 // Initialize the API composable
-const { fetchData, loading, errorMessage } = useApi('http://localhost:3001/api/v1/');
+const { fetchData, uploadFile, createMovement, fetchDropdownOptions } = useApi('http://localhost:3001/api/v1/');
 
 // Form State
 const form = ref({
@@ -147,43 +147,35 @@ const isSubmitDisabled = computed(() => {
 	const requiredFieldsFilled = Object.keys(form.value)
 		.filter((key) => key !== 'observaciones' && key !== 'anexoUrl')
 		.every((key) => form.value[key] !== '');
-	return !requiredFieldsFilled || loading.value || isSaving.value;
+	return !requiredFieldsFilled || isSaving.value;
 });
-
-// Fetch Options from Backend
-const fetchDropdownOptions = async (empresa) => {
-	try {
-		const data = await fetchData(`cc/empresa/${empresa}`);
-
-		// Populate dropdown options
-		branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
-			value: sucursal,
-			label: sucursal,
-		}));
-
-		allBanks.value = data.map((item) => ({
-			value: item.Banco,
-			label: item.Banco,
-			Sucursal: item.Sucursal,
-		}));
-
-		allAccounts.value = data.map((item) => ({
-			value: item.Clabe,
-			label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
-			Banco: item.Banco,
-			Sucursal: item.Sucursal,
-		}));
-	} catch (error) {
-		console.error('Error fetching data:', errorMessage.value);
-	}
-};
 
 // Watch for Empresa Changes and Fetch Dropdown Options
 watch(
 	() => form.value.empresa,
 	(newEmpresa) => {
 		if (newEmpresa) {
-			fetchDropdownOptions(newEmpresa);
+			fetchDropdownOptions(newEmpresa).then(data => {
+				branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
+					value: sucursal,
+					label: sucursal,
+				}));
+
+				allBanks.value = data.map((item) => ({
+					value: item.Banco,
+					label: item.Banco,
+					Sucursal: item.Sucursal,
+				}));
+
+				allAccounts.value = data.map((item) => ({
+					value: item.Clabe,
+					label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
+					Banco: item.Banco,
+					Sucursal: item.Sucursal,
+				}));
+			}).catch(error => {
+				console.error('Error fetching data:', error);
+			});
 		}
 	}
 );
@@ -241,25 +233,9 @@ const handleSubmit = async () => {
 		isSaving.value = true;
 
 		// Upload File
-		const formData = new FormData();
-		formData.append('file', selectedFile.value);
+		const uploadedFile = await uploadFile(selectedFile.value);
 
-		const uploadResponse = await fetch(
-			'http://localhost:3001/api/v1/files/upload',
-			{
-				method: 'POST',
-				body: formData,
-			}
-		);
-
-		if (!uploadResponse.ok) {
-			throw new Error('Error uploading file');
-		}
-
-		const uploadedFile = await uploadResponse.json(); // Assuming the response contains FileName and FileUrl
-		console.log(uploadedFile)
 		form.value.file = {
-			// movementId: route.params.id,
 			FileName: uploadedFile.data.filename,
 			FileUrl: uploadedFile.data.url,
 			bankType: uploadedFile.data.bankType,
@@ -273,17 +249,11 @@ const handleSubmit = async () => {
 		};
 
 		// Save Form
-		await fetchData('mov', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(form.value),
-		});
-		console.log(JSON.stringify(form.value));
-
+		await createMovement(form.value);
 		alert('Movimiento guardado exitosamente');
 		resetForm();
 	} catch (error) {
-		alert('Error al guardar el movimiento: ' + errorMessage.value);
+		alert('Error al guardar el movimiento: ' + error.message);
 	} finally {
 		isSaving.value = false;
 	}
@@ -329,7 +299,27 @@ const handleSoporteDeposito = () => {
 // Fetch Data on Page Load
 onMounted(() => {
 	if (form.value.empresa) {
-		fetchDropdownOptions(form.value.empresa);
+		fetchDropdownOptions(form.value.empresa).then(data => {
+			branchOptions.value = [...new Set(data.map((item) => item.Sucursal))].map((sucursal) => ({
+				value: sucursal,
+				label: sucursal,
+			}));
+
+			allBanks.value = data.map((item) => ({
+				value: item.Banco,
+				label: item.Banco,
+				Sucursal: item.Sucursal,
+			}));
+
+			allAccounts.value = data.map((item) => ({
+				value: item.Clabe,
+				label: `${item.Clabe} (${item.Sucursal}, ${item.Banco})`,
+				Banco: item.Banco,
+				Sucursal: item.Sucursal,
+			}));
+		}).catch(error => {
+			console.error('Error fetching data:', error);
+		});
 	}
 });
 </script>

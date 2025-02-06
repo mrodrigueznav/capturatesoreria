@@ -197,9 +197,9 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useMovements } from '../composables/useMovements';
+import { useApi } from '../../composables/useApi';
 
-const { fetchMovement, uploadFile, updateMovementStatus } = useMovements();
+const { fetchMovement, uploadFile, updateMovementStatus, createClarification } = useApi('http://localhost:3001/api/v1/');
 const router = useRouter();
 const route = useRoute();
 
@@ -288,34 +288,27 @@ const handleFileUpload = async (event) => {
 			throw new Error('El tipo de documento debe ser un comprobante de transferencia');
 		}
 		if (uploadedFile.importeOperacion !== movement.value.ImporteDevolucion) {
-			const createClarification = await fetch('http://localhost:3001/api/v1/cfs', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					movementId: route.params.id,
-					FileName: uploadedFile.filename,
-					FileUrl: uploadedFile.url,
-					BankType: uploadedFile.bankType,
-					CuentaAbono: uploadedFile.cuentaAbono,
-					CuentaCargo: uploadedFile.cuentaCargo,
-					ImporteOperacion: uploadedFile.importeOperacion,
-					FechaAplicacion: uploadedFile.fechaAplicacion,
-					Status: 0,
-					Stage: 3,
-					CreatedBy: process.client ? localStorage.username : '999',
-				}),
+			await createClarification({
+				movementId: route.params.id,
+				FileName: uploadedFile.filename,
+				FileUrl: uploadedFile.url,
+				BankType: uploadedFile.bankType,
+				CuentaAbono: uploadedFile.cuentaAbono,
+				CuentaCargo: uploadedFile.cuentaCargo,
+				ImporteOperacion: uploadedFile.importeOperacion,
+				FechaAplicacion: uploadedFile.fechaAplicacion,
+				Status: 0,
+				Stage: 3,
+				CreatedBy: process.client ? localStorage.username : '999',
 			});
 			throw new Error(`El importe de la operación no coincide con el importe del depósito. ${uploadedFile.importeOperacion} !== ${movement.value.ImporteDevolucion}`);
 		}
 
-		const { success, error: statusError } = await updateMovementStatus(route.params.id, 2);
-		if (statusError) throw statusError;
-
+		await updateMovementStatus(route.params.id, 2);
 		router.push('/treasury/transferCapture');
 	} catch (error) {
 		fileUploadError.value = error.message;
 		console.error('Error during file upload process:', error);
-		// alert('There was an issue processing the file upload.');
 	}
 };
 </script>
